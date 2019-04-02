@@ -3,8 +3,10 @@ package main
 import (
 	"./config"
 	"./controllers"
+	"github.com/DeanThompson/ginpprof"
 	"github.com/gin-gonic/gin"
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"log"
 	"net/http"
 )
 
@@ -33,6 +35,15 @@ func main() {
 				"data":   "sho all customer",
 			})
 		})
+
 	}
-	router.Run()
+	order := router.Group("/api/v1/order")
+	{
+		order.POST("/test", inDB.CreateOrder)
+	}
+	ginpprof.Wrap(router)
+	err := router.Run()
+	if err != nil {
+		log.Print(err)
+	}
 }

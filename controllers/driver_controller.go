@@ -1,19 +1,19 @@
 package controllers
 
 import (
-	"../model"
+	"../models"
+	"../repositories"
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
 	"strconv"
 )
 
 func (idb *InDb) GetDrivers(c *gin.Context) {
 	var (
-		drivers []model.DriverTest
+		drivers []models.DriverTest
 		result  gin.H
 	)
-	idb.DB.Find(&drivers)
+	drivers = repositories.GetDriver(idb.DB)
 	if len(drivers) <= 0 {
 		result = gin.H{
 			"status": http.StatusOK,
@@ -32,14 +32,13 @@ func (idb *InDb) GetDrivers(c *gin.Context) {
 
 func (idb *InDb) CreateDriver(c *gin.Context) {
 	var (
-		driver model.DriverTest
+		driver models.DriverTest
 		result gin.H
 	)
 	name := c.PostForm("name")
 	coordinate := c.PostForm("coordinate")
 	status := c.PostForm("status")
-	i, err := strconv.ParseUint(coordinate, 10, 64)
-	log.Print(err, i)
+	i, _ := strconv.ParseUint(coordinate, 10, 64)
 	driver.Name = name
 	driver.Coordinate = i
 	driver.Status = status
