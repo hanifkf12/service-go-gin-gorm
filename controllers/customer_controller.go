@@ -20,10 +20,28 @@ func (idb *InDb) CreateCustomer(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"message": err,
 		})
+		return
 	} else {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"message": "create",
 			"data":    customer,
 		})
+		return
 	}
+}
+
+func (idb *InDb) UpdateCustomer(c *gin.Context) {
+
+}
+
+func (idb *InDb) UpdateLocationCustomer(c *gin.Context) {
+
+}
+
+func (idb *InDb) ShowCustomer(c *gin.Context) {
+
+}
+
+func (idb *InDb) DeleteCustomer(c *gin.Context) {
+
 }
