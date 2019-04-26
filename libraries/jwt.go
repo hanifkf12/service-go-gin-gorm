@@ -5,13 +5,11 @@ import (
 )
 
 type MyCustomClaims struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Role     string `json:"role"`
+	Uid string `json:"uid"`
 	jwt.StandardClaims
 }
 
-var mySigningKey = []byte("secret-rahasia")
+var mySigningKey = []byte("secret-shejek")
 
 func ValidateToken(myToken string) (bool, string) {
 	token, err := jwt.ParseWithClaims(myToken, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -23,17 +21,15 @@ func ValidateToken(myToken string) (bool, string) {
 	}
 
 	claims := token.Claims.(*MyCustomClaims)
-	return token.Valid, claims.Username
+	return token.Valid, claims.Uid
 }
 
-func ClaimToken(email, username, role string) (string, error) {
+func ClaimToken(uid string) (string, error) {
 	claims := MyCustomClaims{
-		email,
-		username,
-		role,
+		uid,
 		jwt.StandardClaims{
 			Subject: "encode-token",
-			Id:      username,
+			Id:      uid,
 		},
 	}
 

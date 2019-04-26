@@ -19,9 +19,13 @@ type OrderTest struct {
 
 type Order struct {
 	gorm.Model
-	CustomerId string  `json:"customer_id"`
-	DriverId   string  `json:"driver_id"`
-	PickUpLat  float64 `json:"pick_up_lat"`
-	PickUpLong float64 `json:"pick_up_long"`
-	Note       string  `json:"note"`
+	CustomerId      string  `json:"customer_id"`
+	DriverId        string  `json:"driver_id"`
+	PickUpLat       float64 `json:"pick_up_lat"`
+	PickUpLong      float64 `json:"pick_up_long"`
+	DestinationLat  float64 `json:"destination_lat"`
+	DestinationLong float64 `json:"destination_long"`
+	Price           float64 `json:"price"`
+	Note            string  `json:"note"`
+	Status          string  `json:"status"`
 }

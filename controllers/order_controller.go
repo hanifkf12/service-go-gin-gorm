@@ -6,86 +6,115 @@ import (
 	"../repositories"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"log"
 	"net/http"
 	"sort"
 	"strconv"
-	"time"
 )
 
-func (idb *InDb) CreateOrder(c *gin.Context) {
-	var (
-		customer models.CustomerTest
-		driver   models.DriverTest
-		order    models.OrderTest
-	)
-	idDriver := c.PostForm("id_driver")
-	//idCustomer := c.PostForm("id_customer")
-	//err :=idb.DB.First(&customer,idCustomer).Error
-	//if err!=nil{
-	//	c.JSON(http.StatusNotFound, gin.H{
-	//		"message": "customer not found",
-	//	})
-	//	return
-	//}
-	err := idb.DB.First(&driver, idDriver).Error
-	if err != nil {
+//show all available order
+func (idb *InDb) GetAllOrders(c *gin.Context) {
+	orders, err := repositories.GetOrders(idb.DB)
+	if err != nil || len(orders) <= 0 {
 		c.JSON(http.StatusNotFound, gin.H{
-			"message": "driver NotFound",
+			"message": "no data",
+			"data":    orders,
 		})
 		return
 	}
-	order.CustomerID = customer.ID
-	order.DriverId = driver.ID
-	order.DateOrder = time.Now()
-	order.CoordinateCustomerLat = 2138012803981
-	order.CoordinateCustomerLong = 13123123123123
-	order.CoordinateDriverLat = 2309129301
-	order.CoordinateDriverLong = 131231213213
-	order.Note = c.PostForm("note")
-	err = idb.DB.Create(&order).Error
-	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"driver":  driver,
-			"message": err,
-		})
-	} else {
-		c.JSON(http.StatusCreated, gin.H{
-			"driver":  driver,
-			"message": "Order Create",
-			"data":    order,
-		})
-	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "all orders",
+		"data":    orders,
+	})
 }
+
+//create order
 func (idb *InDb) CreateOrderTest(c *gin.Context) {
 	var order models.Order
 	customerId := c.PostForm("uid")
 	pickUpLat, _ := strconv.ParseFloat(c.PostForm("lat_p"), 64)
 	pickUpLong, _ := strconv.ParseFloat(c.PostForm("long_p"), 64)
-
+	destinationLat, _ := strconv.ParseFloat(c.PostForm("lat_d"), 64)
+	destinationLong, _ := strconv.ParseFloat(c.PostForm("long_d"), 64)
+	price, _ := strconv.ParseFloat(c.PostForm("price"), 64)
 	log.Print("uid order:", customerId)
 	log.Print("lat order :", pickUpLat)
 	log.Print("long order :", pickUpLong)
 	note := c.PostForm("note")
 	order.CustomerId = customerId
-	order.DriverId = ""
 	order.PickUpLat = pickUpLat
 	order.PickUpLong = pickUpLong
+	order.DestinationLat = destinationLat
+	order.DestinationLong = destinationLong
+	order.Price = price
 	order.Note = note
+	order.Status = "Not Accepted"
 	availableDrivers := ShowAvailableDriver(idb.DB)
 	nearDriver := GetNearDriver(availableDrivers, order)
-	driverId, _ := filterDriver(nearDriver)
+	driverId, _ := FilterDriver(nearDriver)
 	fixDriver, _ := repositories.ShowDriver(idb.DB, driverId)
+	order.DriverId = driverId
+	data, _ := repositories.CreateOrder(idb.DB, order)
+
 	c.JSON(http.StatusOK, gin.H{
-		"data":   availableDrivers,
+		"data":   data,
 		"near":   nearDriver,
 		"driver": fixDriver,
 	})
 	//send notif to driver
-
 }
 
+//accept order
+func (idb *InDb) AcceptOrder(c *gin.Context) {
+	var accept models.Order
+	id := c.Param("id")
+	accept.Status = "Accepted"
+	accept.DriverId = c.PostForm("driver_id")
+	order, _ := repositories.FindOrderId(idb.DB, id)
+	data, _ := repositories.UpdateOrder(idb.DB, accept, order)
+	driver, _ := repositories.FindDriverId(idb.DB, data.DriverId)
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "accepted",
+		"data":    data,
+		"driver":  driver,
+		"message": "order accepted",
+	})
+}
+
+//cancel order
+func (idb *InDb) CancelOrder(c *gin.Context) {
+	var cancel models.Order
+	id := c.Param("id")
+	cancel.Status = "Cancel"
+	order, _ := repositories.FindOrderId(idb.DB, id)
+	data, _ := repositories.UpdateOrder(idb.DB, cancel, order)
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "canceled",
+		"data":    data,
+		"message": "order canceled",
+	})
+}
+
+// reject order
+func (idb *InDb) RejectOrder(c *gin.Context) {
+	return
+}
+
+// finish order
+func (idb *InDb) FinishOrder(c *gin.Context) {
+	var finish models.Order
+	id := c.Param("id")
+	finish.Status = "Finish"
+	order, _ := repositories.FindOrderId(idb.DB, id)
+	data, _ := repositories.UpdateOrder(idb.DB, finish, order)
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "finished",
+		"data":    data,
+		"message": "order finished",
+	})
+}
+
+//show all available driver status
 func ShowAvailableDriver(db *gorm.DB) []models.Driver {
 	var (
 		drivers []models.Driver
@@ -98,16 +127,13 @@ func ShowAvailableDriver(db *gorm.DB) []models.Driver {
 	}
 	return drivers
 }
+
+// distance 0 - 3 KM
 func GetNearDriver(drivers []models.Driver, order models.Order) models.Drivers {
 	//var driver models.Driver
 	var contents models.Drivers
 	for _, d := range drivers {
 		distance := libraries.CalculatDistance(d.Lat, d.Long, order.PickUpLat, order.PickUpLong)
-		log.Print("distance :", distance)
-		log.Print("lat 1 :", d.Lat)
-		log.Print("long 1 :", d.Long)
-		log.Print("lat 2 :", order.PickUpLat)
-		log.Print("long 2 :", order.PickUpLong)
 		if distance >= 0.0 && distance <= 3.0 {
 			contents = append(contents, models.NearDriver{Uid: d.Uid, Distance: distance})
 		}
@@ -115,9 +141,10 @@ func GetNearDriver(drivers []models.Driver, order models.Order) models.Drivers {
 	return contents
 }
 
+//sort distance driver
 var a = 0
 
-func filterDriver(nearDriver models.Drivers) (string, error) {
+func FilterDriver(nearDriver models.Drivers) (string, error) {
 	var uid string
 	sort.Sort(nearDriver)
 	if a+1 > len(nearDriver) {
@@ -125,5 +152,9 @@ func filterDriver(nearDriver models.Drivers) (string, error) {
 	}
 	uid = nearDriver[a].Uid
 	a = a + 1
-	return uid, errors.New("Error")
+	return uid, nil
+}
+
+func (idb *InDb) HistoryDriver(c *gin.Context) {
+
 }

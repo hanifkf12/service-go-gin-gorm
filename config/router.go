@@ -26,11 +26,13 @@ func InitRouter(router *gin.Engine, db *gorm.DB) {
 	}
 	customer := router.Group("/api/v1/customers")
 	{
-		customer.POST("/test", inDB.CreateCustomer)
+		customer.POST("/test", inDB.RegisterCustomer)
+		customer.GET("/test", inDB.GetAllCustomers)
 	}
 	order := router.Group("/api/v1/order")
 	{
 		order.POST("/test", inDB.CreateOrderTest)
+		order.GET("/test", inDB.GetAllOrders)
+		order.POST("/accept/:id", inDB.AcceptOrder)
 	}
-
 }
