@@ -47,12 +47,14 @@ func (idb *InDb) CreateDriver(c *gin.Context) {
 		result gin.H
 	)
 	uid := c.PostForm("uid")
+	email := c.PostForm("email")
 	name := c.PostForm("name")
 	status := c.PostForm("status")
 	lat := c.PostForm("lat")
 	long := c.PostForm("long")
 	//i, _ := strconv.ParseUint(coordinate, 10, 64)
 	driver.Uid = uid
+	driver.Email = email
 	driver.Name = name
 	driver.Lat, _ = strconv.ParseFloat(lat, 64)
 	driver.Long, _ = strconv.ParseFloat(long, 64)

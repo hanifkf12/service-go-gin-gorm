@@ -14,7 +14,7 @@ type DriverTest struct {
 
 type Driver struct {
 	Uid       string    `gorm:"primary_key" json:"uid"`
-	Email     string    `gorm:"not_null;unique_index" json:"email"`
+	Email     string    `gorm:"not_null" json:"email"`
 	Name      string    `gorm:"not_null" json:"name"`
 	Status    string    `json:"status"`
 	Telephone string    `json:"telephone"`

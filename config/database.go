@@ -12,7 +12,7 @@ func DBInit() *gorm.DB {
 		panic("failed to connect to database " + err.Error())
 	}
 
-	//db.DropTableIfExists(models.Order{})
+	//db.DropTableIfExists(models.Order{},models.Driver{})
 	db.AutoMigrate(models.Order{}, models.Customer{}, models.Driver{}, models.DriverTest{}, models.CustomerTest{}, models.OrderTest{})
 	return db
 }
