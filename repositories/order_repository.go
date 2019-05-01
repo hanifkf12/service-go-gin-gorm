@@ -16,7 +16,7 @@ func GetOrders(db *gorm.DB) ([]models.Order, error) {
 }
 func FindOrderId(db *gorm.DB, id string) (models.Order, error) {
 	var order models.Order
-	err := db.First(&order, id).Error
+	err := db.Where("id = ?", id).First(&order).Error
 	return order, err
 }
 func UpdateOrder(db *gorm.DB, new models.Order, order models.Order) (models.Order, error) {

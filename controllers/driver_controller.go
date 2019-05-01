@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"../libraries"
 	"../models"
 	"../repositories"
 	"github.com/gin-gonic/gin"
@@ -9,16 +10,7 @@ import (
 	"time"
 )
 
-func (idb *InDb) GetDrivers(c *gin.Context) {
-	//header := c.GetHeader("Authorization")
-	//token := libraries.SplitToken(header)
-	//isValid,_ := libraries.ValidateToken(token)
-	//if !isValid{
-	//	c.JSON(http.StatusForbidden, gin.H{
-	//		"message": "unauthorized",
-	//	})
-	//	return
-	//}
+func (idb *InDb) GetAllDrivers(c *gin.Context) {
 	var (
 		drivers []models.Driver
 		result  gin.H
@@ -41,45 +33,50 @@ func (idb *InDb) GetDrivers(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-func (idb *InDb) CreateDriver(c *gin.Context) {
-	var (
-		driver models.Driver
-		result gin.H
-	)
+func (idb *InDb) RegisterDriver(c *gin.Context) {
+	var driver models.Driver
 	uid := c.PostForm("uid")
 	email := c.PostForm("email")
 	name := c.PostForm("name")
-	status := c.PostForm("status")
-	lat := c.PostForm("lat")
-	long := c.PostForm("long")
-	//i, _ := strconv.ParseUint(coordinate, 10, 64)
 	driver.Uid = uid
 	driver.Email = email
 	driver.Name = name
-	driver.Lat, _ = strconv.ParseFloat(lat, 64)
-	driver.Long, _ = strconv.ParseFloat(long, 64)
-	driver.Status = status
-	driver.CreatedAt = time.Now()
-	_, err := repositories.CreateDriver(idb.DB, driver)
-	if err != nil {
-		result = gin.H{
-			"status": http.StatusUnprocessableEntity,
-			"data":   err.Error(),
+	driver.Status = "Active"
+	dr, e := repositories.FindDriverId(idb.DB, uid)
+	token, _ := libraries.ClaimToken(uid)
+	if e != nil {
+		driver.CreatedAt = time.Now()
+		data, err := repositories.CreateDriver(idb.DB, driver)
+		if err != nil {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{
+				"message": err.Error(),
+				"data":    data,
+				"token":   token,
+			})
+			return
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"message": "Login Berhasil",
+				"data":    data,
+				"token":   token,
+			})
+			return
 		}
 	} else {
-		result = gin.H{
-			"status": http.StatusCreated,
-			"data":   driver,
-		}
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Login Berhasil",
+			"data":    dr,
+			"token":   token,
+		})
+		return
 	}
-	c.JSON(http.StatusCreated, result)
 }
 
 func (idb *InDb) ShowDriver(c *gin.Context) {
 	var (
 		driver models.Driver
 	)
-	driver, err := repositories.ShowDriver(idb.DB, c.Param("uid"))
+	driver, err := repositories.FindDriverId(idb.DB, c.Param("uid"))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"message": "driver not found",
@@ -94,27 +91,67 @@ func (idb *InDb) ShowDriver(c *gin.Context) {
 func (idb *InDb) UpdateLocationDriver(c *gin.Context) {
 
 	var newDriver models.Driver
-	driver, err := repositories.ShowDriver(idb.DB, c.Param("uid"))
+	driver, err := repositories.FindDriverId(idb.DB, c.Param("uid"))
 	newDriver.Lat, _ = strconv.ParseFloat(c.PostForm("lat"), 64)
 	newDriver.Long, _ = strconv.ParseFloat(c.PostForm("long"), 64)
-	newDriver.UpdateAt = time.Now()
-	d, _ := repositories.UpdateDriver(idb.DB, driver, newDriver)
-	c.JSON(http.StatusOK, gin.H{
-		"driver": driver,
-		"data":   d,
-		"err":    err,
-		"new":    newDriver,
-	})
+	newDriver.UpdatedAt = time.Now()
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"driver":  nil,
+			"message": err.Error(),
+		})
+		return
+	} else {
+		d, _ := repositories.UpdateDriver(idb.DB, driver, newDriver)
+		c.JSON(http.StatusOK, gin.H{
+			"driver":  d,
+			"message": "updated location",
+		})
+		return
+	}
+
 }
 
 func (idb *InDb) UpdateStatusDriver(c *gin.Context) {
 	var newDriver models.Driver
-	driver, _ := repositories.ShowDriver(idb.DB, c.Param("uid"))
+	driver, err := repositories.FindDriverId(idb.DB, c.Param("uid"))
 	newDriver.Status = c.PostForm("status")
-	newDriver.UpdateAt = time.Now()
-	d, _ := repositories.UpdateDriver(idb.DB, driver, newDriver)
-	c.JSON(http.StatusOK, gin.H{
-		"message": "status " + newDriver.Status,
-		"data":    d,
-	})
+	newDriver.UpdatedAt = time.Now()
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	} else {
+		d, _ := repositories.UpdateDriver(idb.DB, driver, newDriver)
+		c.JSON(http.StatusOK, gin.H{
+			"message": "update status " + d.Status,
+			"data":    d,
+		})
+		return
+	}
+
+}
+func (idb *InDb) StoreTokenDriver(c *gin.Context) {
+	var store models.Token
+	uid := c.PostForm("uid")
+	token := c.PostForm("token")
+	store.Uid = uid
+	store.Token = token
+	exist := repositories.CheckExistToken(idb.DB, uid)
+	if exist != true {
+		newt, _ := repositories.CreateToken(idb.DB, store)
+		c.JSON(http.StatusCreated, gin.H{
+			"message": "token stored",
+			"data":    newt,
+		})
+	} else {
+		old, _ := repositories.GetTokenByUid(idb.DB, uid)
+		update, _ := repositories.UpdateToken(idb.DB, old, store)
+		c.JSON(http.StatusCreated, gin.H{
+			"message": "token stored",
+			"data":    update,
+		})
+	}
 }

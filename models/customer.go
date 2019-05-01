@@ -13,7 +13,7 @@ type CustomerTest struct {
 }
 
 type Customer struct {
-	Uid       string    `gorm:"primary_key",json:"uid"`
+	Uid       string    `gorm:"primary_key" json:"uid"`
 	Email     string    `json:"email"`
 	Name      string    `json:"name"`
 	Address   string    `json:"address"`
@@ -22,5 +22,5 @@ type Customer struct {
 	Long      float64   `json:"long"`
 	Location  string    `json:"location"`
 	CreatedAt time.Time `json:"created_at"`
-	UpdateAt  time.Time `json:"update_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

@@ -21,7 +21,7 @@ type Driver struct {
 	Lat       float64   `json:"lat"`
 	Long      float64   `json:"long"`
 	CreatedAt time.Time `json:"created_at"`
-	UpdateAt  time.Time `json:"update_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type NearDriver struct {

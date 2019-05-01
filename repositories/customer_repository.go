@@ -14,16 +14,16 @@ func CreateCustomer(db *gorm.DB, customer models.Customer) (models.Customer, err
 	err := db.Create(&customer).Error
 	return customer, err
 }
-func DeleteCustomer(db *gorm.DB, customer models.CustomerTest) (models.CustomerTest, error) {
+func DeleteCustomer(db *gorm.DB, customer models.Customer) error {
 	err := db.Delete(&customer).Error
-	return customer, err
+	return err
 }
 func ShowCustomer(db *gorm.DB, id string) (models.CustomerTest, error) {
 	var customer models.CustomerTest
 	err := db.First(&customer, id).Error
 	return customer, err
 }
-func UpdateCustomer(db *gorm.DB, customer models.CustomerTest, newCustomer models.CustomerTest) (models.CustomerTest, error) {
+func UpdateCustomer(db *gorm.DB, customer models.Customer, newCustomer models.Customer) (models.Customer, error) {
 	err := db.Model(&customer).Updates(newCustomer).Error
 	return customer, err
 }

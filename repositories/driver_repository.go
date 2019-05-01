@@ -23,13 +23,14 @@ func DeleteDriver(db *gorm.DB, driver models.DriverTest) (models.DriverTest, err
 	err := db.Delete(&driver).Error
 	return driver, err
 }
-func ShowDriver(db *gorm.DB, uid string) (models.Driver, error) {
+func FindDriverId(db *gorm.DB, uid string) (models.Driver, error) {
 	var driver models.Driver
 	err := db.Where("uid = ?", uid).First(&driver).Error
 	return driver, err
 }
-func FindDriverId(db *gorm.DB, id string) (models.DriverTest, error) {
-	var driver models.DriverTest
-	err := db.First(&driver, id).Error
-	return driver, err
-}
+
+//func ShowDriver(db *gorm.DB, id string) (models.Driver, error) {
+//	var driver models.Driver
+//	err := db.First(&driver, id).Error
+//	return driver, err
+//}
