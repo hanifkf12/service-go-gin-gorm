@@ -34,6 +34,7 @@ func InitRouter(router *gin.Engine, db *gorm.DB) {
 		customer.GET("/all", inDB.GetAllCustomers)
 		customer.GET("/history/:uid", inDB.GetHistoryCustomer)
 		customer.PUT("/update/location/:uid", inDB.UpdateLocationCustomer)
+		customer.PUT("/update/profile/:uid", inDB.UpdateProfileCustomer)
 		customer.POST("/token", inDB.StoreTokenCustomer)
 
 	}
