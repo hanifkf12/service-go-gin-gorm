@@ -16,6 +16,7 @@ type Customer struct {
 	Uid       string    `gorm:"primary_key" json:"uid"`
 	Email     string    `json:"email"`
 	Name      string    `json:"name"`
+	UrlPhoto  string    `json:"url_photo"`
 	Address   string    `json:"address"`
 	Telephone string    `json:"telephone"`
 	Lat       float64   `json:"lat"`

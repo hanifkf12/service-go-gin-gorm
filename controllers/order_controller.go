@@ -183,6 +183,27 @@ func (idb *InDb) AcceptOrder(c *gin.Context) {
 		//driver, _ := repositories.FindDriverId(idb.DB, data.DriverId)
 		//trigger client
 		//push notification client
+		d, _ := repositories.FindDriverId(idb.DB, data.DriverId)
+		content := map[string]interface{}{
+			"driver_id":    d.Uid,
+			"driver_name":  d.Name,
+			"motor_number": d.MotorNumber,
+			"price":        data.Price,
+		}
+		client := models.Pusher{
+			Channel: "Shejek-Order",
+			Event:   "order-" + data.CustomerId + string(data.ID),
+			Data:    content,
+		}
+		_ = client.TriggerClient()
+
+		notif := models.Notification{
+			Title: "Shejek Order",
+			Body:  d.Name + " Accept Your Order",
+			Data:  content,
+		}
+		tokenFcm, _ := repositories.GetTokenByUid(idb.DB, data.CustomerId)
+		_ = notif.SendNotification(tokenFcm.Token)
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "accepted",
 			"data":    data,

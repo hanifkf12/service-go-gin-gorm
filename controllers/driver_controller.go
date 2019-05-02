@@ -38,9 +38,11 @@ func (idb *InDb) RegisterDriver(c *gin.Context) {
 	uid := c.PostForm("uid")
 	email := c.PostForm("email")
 	name := c.PostForm("name")
+	photo := c.PostForm("url_photo")
 	driver.Uid = uid
 	driver.Email = email
 	driver.Name = name
+	driver.UrlPhoto = photo
 	driver.Status = "Active"
 	dr, e := repositories.FindDriverId(idb.DB, uid)
 	token, _ := libraries.ClaimToken(uid)
@@ -110,6 +112,31 @@ func (idb *InDb) UpdateLocationDriver(c *gin.Context) {
 		return
 	}
 
+}
+
+func (idb *InDb) UpdateProfileDriver(c *gin.Context) {
+	var newD models.Driver
+	name := c.PostForm("name")
+	telephone := c.PostForm("telephone")
+	motorNumber := c.PostForm("motor_number")
+	newD.Name = name
+	newD.Telephone = telephone
+	newD.MotorNumber = motorNumber
+	driver, err := repositories.FindDriverId(idb.DB, c.Param("uid"))
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	} else {
+		d, _ := repositories.UpdateDriver(idb.DB, driver, newD)
+		c.JSON(http.StatusOK, gin.H{
+			"message": "updated profile " + d.Name,
+			"data":    d,
+		})
+		return
+	}
 }
 
 func (idb *InDb) UpdateStatusDriver(c *gin.Context) {

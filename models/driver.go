@@ -13,15 +13,17 @@ type DriverTest struct {
 }
 
 type Driver struct {
-	Uid       string    `gorm:"primary_key" json:"uid"`
-	Email     string    `gorm:"not_null" json:"email"`
-	Name      string    `gorm:"not_null" json:"name"`
-	Status    string    `json:"status"`
-	Telephone string    `json:"telephone"`
-	Lat       float64   `json:"lat"`
-	Long      float64   `json:"long"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Uid         string    `gorm:"primary_key" json:"uid"`
+	Email       string    `gorm:"not_null" json:"email"`
+	Name        string    `gorm:"not_null" json:"name"`
+	UrlPhoto    string    `json:"url_photo"`
+	Status      string    `json:"status"`
+	Telephone   string    `json:"telephone"`
+	MotorNumber string    `json:"motor_number"`
+	Lat         float64   `json:"lat"`
+	Long        float64   `json:"long"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type NearDriver struct {

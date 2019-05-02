@@ -23,6 +23,7 @@ func InitRouter(router *gin.Engine, db *gorm.DB) {
 		driver.POST("/register", inDB.RegisterDriver)
 		driver.PUT("/update/location/:uid", inDB.UpdateLocationDriver)
 		driver.PUT("/update/status/:uid", inDB.UpdateStatusDriver)
+		driver.PUT("/update/profile/:uid", inDB.UpdateProfileDriver)
 		driver.GET("/history/:uid", inDB.GetHistoryDriver)
 		driver.POST("/token", inDB.StoreTokenDriver)
 	}

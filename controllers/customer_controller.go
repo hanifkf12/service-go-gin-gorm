@@ -32,9 +32,11 @@ func (idb *InDb) RegisterCustomer(c *gin.Context) {
 	uid := c.PostForm("uid")
 	name := c.PostForm("name")
 	email := c.PostForm("email")
+	photo := c.PostForm("url_photo")
 	customer.Name = name
 	customer.Uid = uid
 	customer.Email = email
+	customer.UrlPhoto = photo
 	cust, e := repositories.FindCustomerId(idb.DB, uid)
 	token, _ := libraries.ClaimToken(uid)
 	if e != nil {
@@ -68,7 +70,30 @@ func (idb *InDb) RegisterCustomer(c *gin.Context) {
 //func (idb *InDb) UpdateCustomer(c *gin.Context) {
 //
 //}
-
+func (idb *InDb) UpdateProfileCustomer(c *gin.Context) {
+	var newC models.Customer
+	uid := c.Param("uid")
+	name := c.PostForm("name")
+	address := c.PostForm("address")
+	telephone := c.PostForm("telephone")
+	newC.Name = name
+	newC.Address = address
+	newC.Telephone = telephone
+	old, err := repositories.FindCustomerId(idb.DB, uid)
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"message": "update profile failed " + err.Error(),
+			"data":    nil,
+		})
+		return
+	} else {
+		data, _ := repositories.UpdateCustomer(idb.DB, old, newC)
+		c.JSON(http.StatusOK, gin.H{
+			"message": "update profile success",
+			"data":    data,
+		})
+	}
+}
 func (idb *InDb) UpdateLocationCustomer(c *gin.Context) {
 	var updateLoc models.Customer
 	uid := c.Param("uid")
@@ -88,7 +113,7 @@ func (idb *InDb) UpdateLocationCustomer(c *gin.Context) {
 	} else {
 		data, _ := repositories.UpdateCustomer(idb.DB, old, updateLoc)
 		c.JSON(http.StatusOK, gin.H{
-			"message": "update location succes",
+			"message": "update location success",
 			"data":    data,
 		})
 	}
